@@ -1,13 +1,14 @@
-﻿using GoogleMobileAds.Api;
+﻿#if USE_ADMOB
+using GoogleMobileAds.Api;
 
 namespace MidasTouch.AD.AdMob
 {
-    public class BannerSnippets
+    internal class BannerSnippets
     {
         private readonly string _adUnitId;
         private BannerView _bannerView;
 
-        public BannerSnippets(string adUnitId)
+        internal BannerSnippets(string adUnitId)
         {
             _adUnitId = adUnitId;
 
@@ -45,3 +46,4 @@ namespace MidasTouch.AD.AdMob
         }
     }
 }
+#endif

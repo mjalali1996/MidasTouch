@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if USE_ADMOB
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GoogleMobileAds.Api;
@@ -101,3 +102,4 @@ namespace MidasTouch.AD.AdMob
         }
     }
 }
+#endif

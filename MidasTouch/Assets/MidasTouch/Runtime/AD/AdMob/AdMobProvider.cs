@@ -1,30 +1,31 @@
-﻿using System;
-using GoogleMobileAds.Api;
+﻿#if USE_ADMOB
+using System;
 using UnityEngine;
+using GoogleMobileAds.Api;
 
 namespace MidasTouch.AD.AdMob
 {
-    public class AdMobProvider : IAdProvider
+    internal class AdMobProvider : IAdProvider
     {
         public bool BannerSupported => true;
-        
+
         private readonly string _bannerAdId;
         private readonly string _interstitialAdId;
         private readonly string _rewardedAdId;
-        
+
         private bool _initialized;
         private BannerSnippets _bannerSnippets;
         private InterstitialSnippets _interstitialSnippets;
         private RewardedAdSnippets _rewardedAdSnippets;
-        
 
-        public AdMobProvider(string bannerAdId, string interstitialAdId, string rewardedAdId)
+
+        internal AdMobProvider(string bannerAdId, string interstitialAdId, string rewardedAdId)
         {
             _bannerAdId = bannerAdId;
             _interstitialAdId = interstitialAdId;
             _rewardedAdId = rewardedAdId;
         }
-        
+
         public void Initialize(Action<bool> callback)
         {
             Debug.Log("Initializing AdMob Provider");
@@ -40,15 +41,15 @@ namespace MidasTouch.AD.AdMob
 
         public void SetBannerActive(bool show)
         {
-            if(!BannerSupported) return;
-            if(!_initialized) return;
-            
-            if(show)
+            if (!BannerSupported) return;
+            if (!_initialized) return;
+
+            if (show)
                 _bannerSnippets.ShowBanner();
             else
                 _bannerSnippets.HideBanner();
         }
-        
+
         public void ShowInterstitial()
         {
             if (!_initialized) return;
@@ -62,11 +63,9 @@ namespace MidasTouch.AD.AdMob
                 success?.Invoke(false);
                 return;
             }
-            
-            _rewardedAdSnippets.ShowAd(reward =>
-            {
-                success?.Invoke(true);
-            });
+
+            _rewardedAdSnippets.ShowAd(reward => { success?.Invoke(true); });
         }
     }
 }
+#endif
