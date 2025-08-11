@@ -1,7 +1,9 @@
 {
     "name": "MidasTouch",
     "rootNamespace": "MidasTouch",
-    "references": [],
+    "references": [
+        ""
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

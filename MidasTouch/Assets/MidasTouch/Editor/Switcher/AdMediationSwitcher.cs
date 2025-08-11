@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using GooglePlayServices;
+using System.Linq;
 using MidasTouch.Editor.Utils;
 using UnityEditor;
 using UnityEditor.Build;
@@ -9,18 +9,33 @@ using UnityEngine;
 
 namespace MidasTouch.Editor.Switcher
 {
+    [InitializeOnLoad]
     public class AdMediationSwitcher : EditorWindow
     {
         private const string ADMOB_SYMBOL = "USE_ADMOB";
         private const string TAPSELL_SYMBOL = "USE_TAPSELL";
         private const string BaseMediationPath = "Assets/MidasTouch/Editor/AdMediation";
+
+        public static readonly IReadOnlyDictionary<string, string> MediationPackageNames =
+            new Dictionary<string, string>()
+            {
+                { ADMOB_SYMBOL, "Admob" },
+                { TAPSELL_SYMBOL, "Tapsell" }
+            };
         
-        private static readonly Dictionary<string, string> MediationPaths = new()
+        static AdMediationSwitcher()
         {
-            { ADMOB_SYMBOL, $"{BaseMediationPath}/Admob.unitypackage" },
-            { TAPSELL_SYMBOL, $"{BaseMediationPath}/Tapsell.unitypackage" }
-        };
-        
+            AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
+        }
+
+        private static void OnImportPackageCompleted(string packagename)
+        {
+            var contains = MediationPackageNames.Values.Contains(packagename);
+            if(!contains) return;
+            
+            GooglePlayServices.PlayServicesResolver.MenuForceResolve();
+        }
+
         [MenuItem("Tools/Ad Mediation Switcher")]
         public static void ShowWindow()
         {
@@ -31,12 +46,12 @@ namespace MidasTouch.Editor.Switcher
         {
             if (GUILayout.Button("Enable AdMob"))
             {
-                SwitchToMediation(ADMOB_SYMBOL, MediationPaths[ADMOB_SYMBOL]);
+                SwitchToMediation(ADMOB_SYMBOL);
             }
 
             if (GUILayout.Button("Enable Tapsell"))
             {
-                SwitchToMediation(TAPSELL_SYMBOL, MediationPaths[TAPSELL_SYMBOL]);
+                SwitchToMediation(TAPSELL_SYMBOL);
             }
 
             if (GUILayout.Button("Clear All Mediation"))
@@ -45,51 +60,56 @@ namespace MidasTouch.Editor.Switcher
             }
         }
 
-        private void SwitchToMediation(string symbol, string packagePath)
+        private void SwitchToMediation(string symbol)
         {
             ClearAllMediation();
 
-            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-            
+
+            var namedBuildTarget =
+                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+
             // Set the new symbol
             var currentSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, currentSymbols + ";" + symbol);
-            
+
+            var packagePath = GetPackageFullPath(symbol);
             // Import the package
             AssetDatabase.ImportPackage(packagePath, false);
         }
 
-        private void ClearAllMediation()
+        private static void ClearAllMediation()
         {
             // PlayServicesResolver.MenuDeleteResolvedLibraries();
-            var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
-            
+            var namedBuildTarget =
+                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+
             // Remove all custom symbols
             var currentSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             var newSymbols = currentSymbols;
             string currentMediation = ADMOB_SYMBOL;
-            foreach (var keyValuePair in MediationPaths)
+            foreach (var keyValuePair in MediationPackageNames)
             {
                 var mediation = keyValuePair.Key;
-                if (currentSymbols.Contains(mediation)) 
+                if (currentSymbols.Contains(mediation))
                     currentMediation = mediation;
 
                 newSymbols = newSymbols.Replace($";{mediation}", "").Replace(mediation, "");
-
             }
 
-            if (currentMediation != null) 
-                DeleteAllMediationFile(MediationPaths[currentMediation]);
-
+            if (currentMediation != null)
+            {
+                var packagePath = GetPackageFullPath(currentMediation);
+                DeleteAllMediationFile(packagePath);
+            }
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
-            
+
             Debug.Log("All Ad Mediation plugins and symbols cleared.");
         }
 
-        private void DeleteAllMediationFile(string packagePath)
+        private static void DeleteAllMediationFile(string packagePath)
         {
             var filePaths = PackagePathExtractor.GetPackagePaths(packagePath);
-            
+
             var parentDirectories = new HashSet<string>();
 
             // Pass 1: Delete all files and folders from the extracted paths
@@ -98,19 +118,19 @@ namespace MidasTouch.Editor.Switcher
                 // Get the parent directory of the path and add it to our list for later cleanup
 
                 var fullPath = Path.Combine(Application.dataPath, path.Substring("Assets/".Length));
-                
+
                 var parentDir = Path.GetDirectoryName(fullPath)?.Replace('\\', '/');
                 if (!string.IsNullOrEmpty(parentDir))
                 {
                     parentDirectories.Add(parentDir);
                 }
-        
+
                 if (File.Exists(fullPath) || Directory.Exists(fullPath))
                 {
                     // Use FileUtil.DeleteFileOrDirectory, which correctly handles assets
                     FileUtil.DeleteFileOrDirectory(path);
                     var metaFile = path + ".meta";
-                    if (File.Exists(metaFile)) 
+                    if (File.Exists(metaFile))
                         FileUtil.DeleteFileOrDirectory(metaFile);
                     Debug.Log($"Deleted: {path}");
                 }
@@ -119,10 +139,10 @@ namespace MidasTouch.Editor.Switcher
                     Debug.LogWarning($"Skipped (not found): {path}");
                 }
             }
-    
+
             // Pass 2: Check and delete any parent directories that are now empty
             Debug.Log("--- Starting empty directory cleanup ---");
-    
+
             // Sort the directories in reverse alphabetical order to process deepest directories first
             var sortedDirectories = new List<string>(parentDirectories);
             sortedDirectories.Sort((a, b) => String.CompareOrdinal(b, a));
@@ -134,10 +154,10 @@ namespace MidasTouch.Editor.Switcher
                 if (Directory.Exists(dir) && Directory.GetFileSystemEntries(dir).Length == 0)
                 {
                     FileUtil.DeleteFileOrDirectory(dir);
-                    
+
                     var metaFile = dir + ".meta";
                     if (File.Exists(metaFile)) FileUtil.DeleteFileOrDirectory(metaFile);
-                    
+
                     Debug.Log($"Deleted empty directory: {dir}");
                 }
             }
@@ -146,37 +166,10 @@ namespace MidasTouch.Editor.Switcher
             AssetDatabase.Refresh();
             Debug.Log("--- Deletion complete and AssetDatabase refreshed ---");
         }
-    }
-    
-    [InitializeOnLoad]
-    public class AssetDatabaseExamples
-    {
-        static AssetDatabaseExamples()
-        {
-            AssetDatabase.importPackageStarted += OnImportPackageStarted;
-            AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
-            AssetDatabase.importPackageFailed += OnImportPackageFailed;
-            AssetDatabase.importPackageCancelled += OnImportPackageCancelled;
-        }
 
-        private static void OnImportPackageCancelled(string packageName)
+        private static string GetPackageFullPath(string symbol)
         {
-            Debug.Log($"Cancelled the import of package: {packageName}");
-        }
-
-        private static void OnImportPackageCompleted(string packagename)
-        {
-            Debug.Log($"Imported package: {packagename}");
-        }
-
-        private static void OnImportPackageFailed(string packagename, string errormessage)
-        {
-            Debug.Log($"Failed importing package: {packagename} with error: {errormessage}");
-        }
-
-        private static void OnImportPackageStarted(string packagename)
-        {
-            Debug.Log($"Started importing package: {packagename}");
+            return $"{BaseMediationPath}/{MediationPackageNames[symbol]}.unitypackage";
         }
     }
 }
