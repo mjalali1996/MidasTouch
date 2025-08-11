@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using GooglePlayServices;
 using MidasTouch.Editor.Utils;
 using UnityEditor;
 using UnityEditor.Build;
@@ -53,13 +54,14 @@ namespace MidasTouch.Editor.Switcher
             // Set the new symbol
             var currentSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, currentSymbols + ";" + symbol);
-
+            
             // Import the package
             AssetDatabase.ImportPackage(packagePath, false);
         }
 
         private void ClearAllMediation()
         {
+            // PlayServicesResolver.MenuDeleteResolvedLibraries();
             var namedBuildTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
             
             // Remove all custom symbols
@@ -143,6 +145,38 @@ namespace MidasTouch.Editor.Switcher
             // Finalize by refreshing the AssetDatabase to reflect all changes
             AssetDatabase.Refresh();
             Debug.Log("--- Deletion complete and AssetDatabase refreshed ---");
+        }
+    }
+    
+    [InitializeOnLoad]
+    public class AssetDatabaseExamples
+    {
+        static AssetDatabaseExamples()
+        {
+            AssetDatabase.importPackageStarted += OnImportPackageStarted;
+            AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
+            AssetDatabase.importPackageFailed += OnImportPackageFailed;
+            AssetDatabase.importPackageCancelled += OnImportPackageCancelled;
+        }
+
+        private static void OnImportPackageCancelled(string packageName)
+        {
+            Debug.Log($"Cancelled the import of package: {packageName}");
+        }
+
+        private static void OnImportPackageCompleted(string packagename)
+        {
+            Debug.Log($"Imported package: {packagename}");
+        }
+
+        private static void OnImportPackageFailed(string packagename, string errormessage)
+        {
+            Debug.Log($"Failed importing package: {packagename} with error: {errormessage}");
+        }
+
+        private static void OnImportPackageStarted(string packagename)
+        {
+            Debug.Log($"Started importing package: {packagename}");
         }
     }
 }
