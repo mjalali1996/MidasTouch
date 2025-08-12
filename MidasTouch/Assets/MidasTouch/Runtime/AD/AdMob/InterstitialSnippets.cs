@@ -1,6 +1,5 @@
 ﻿#if USE_ADMOB
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using GoogleMobileAds.Api;
 using UnityEngine;
 
@@ -9,57 +8,57 @@ namespace MidasTouch.AD.AdMob
     public class InterstitialSnippets
     {
         private readonly string _adUnitId;
-        private readonly List<InterstitialAd> _interstitialAds;
+        private InterstitialAd _interstitialAd;
 
         public InterstitialSnippets(string adUnitId)
         {
             _adUnitId = adUnitId;
-            _interstitialAds = new List<InterstitialAd>();
 
-            LoadNewAd();
+            _ = LoadNewAd();
         }
 
-        private void LoadNewAd()
+        private async Task LoadNewAd()
         {
-            var adRequest = new AdRequest();
-
-            // Send the request to load the ad.
-            InterstitialAd.Load(_adUnitId, adRequest, (InterstitialAd ad, LoadAdError error) =>
+            while (true)
             {
-                if (error != null)
+                if (_interstitialAd == null)
                 {
-                    Debug.LogWarning(error);
-                    return;
+                    var adRequest = new AdRequest();
+
+                    // Send the request to load the ad.
+                    InterstitialAd.Load(_adUnitId, adRequest, (ad, error) =>
+                    {
+                        if (error != null)
+                        {
+                            Debug.LogWarning(error);
+                            return;
+                        }
+
+                        _interstitialAd = ad;
+                    });
                 }
 
-                _interstitialAds.Add(ad);
-                ListenToAdEvents(ad);
-            });
+                await Task.Delay(1000);
+            }
         }
 
-        public bool CanShowAd()
+        private bool CanShow()
         {
-            var interstitialAd = _interstitialAds.LastOrDefault();
-            return CanShow(interstitialAd);
-        }
-
-        private bool CanShow(InterstitialAd interstitialAd)
-        {
-            if (interstitialAd == null || !interstitialAd.CanShowAd()) return false;
+            if (_interstitialAd == null || !_interstitialAd.CanShowAd()) return false;
             return true;
         }
 
         public void ShowAd()
         {
-            var interstitialAd = _interstitialAds.LastOrDefault();
-            if (!CanShow(interstitialAd)) return;
+            if (!CanShow()) return;
 
-            interstitialAd?.Show();
+            ListenToAdEvents(_interstitialAd);
+            _interstitialAd?.Show();
         }
 
         private void ListenToAdEvents(InterstitialAd interstitialAd)
         {
-            interstitialAd.OnAdPaid += (AdValue adValue) =>
+            interstitialAd.OnAdPaid += adValue =>
             {
                 // Raised when the ad is estimated to have earned money.
             };
@@ -75,25 +74,20 @@ namespace MidasTouch.AD.AdMob
             {
                 // Raised when the ad opened full screen content.
             };
-            interstitialAd.OnAdFullScreenContentClosed += () =>
-            {
-                LoadNewAd();
-                DestroyAd(interstitialAd);
-            };
-            interstitialAd.OnAdFullScreenContentFailed += (AdError error) =>
+            interstitialAd.OnAdFullScreenContentClosed += DestroyAd;
+            interstitialAd.OnAdFullScreenContentFailed += error =>
             {
                 Debug.LogWarning(error);
-                LoadNewAd();
-                DestroyAd(interstitialAd);
+                DestroyAd();
             };
         }
 
-        private void DestroyAd(InterstitialAd interstitialAd)
+        private void DestroyAd()
         {
-            if (interstitialAd != null)
+            if (_interstitialAd != null)
             {
-                _interstitialAds.Remove(interstitialAd);
-                interstitialAd.Destroy();
+                _interstitialAd.Destroy();
+                _interstitialAd = null;
             }
         }
     }

@@ -64,7 +64,7 @@ namespace MidasTouch.AD.AdMob
                 return;
             }
 
-            _rewardedAdSnippets.ShowAd(reward => { success?.Invoke(true); });
+            _rewardedAdSnippets.ShowAd(reward => success?.Invoke(true), () => success?.Invoke(false));
         }
     }
 }

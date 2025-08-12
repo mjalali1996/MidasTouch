@@ -1,7 +1,6 @@
 ﻿#if USE_ADMOB
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using GoogleMobileAds.Api;
 using UnityEngine;
 
@@ -10,60 +9,60 @@ namespace MidasTouch.AD.AdMob
     public class RewardedAdSnippets
     {
         private readonly string _adUnitId;
-        private readonly List<RewardedAd> _rewardedAds;
+        private RewardedAd _rewardedAd;
 
         public RewardedAdSnippets(string adUnitId)
         {
             _adUnitId = adUnitId;
-            _rewardedAds = new List<RewardedAd>();
-            LoadNewAd();
+            _ = LoadNewAd();
         }
 
-
-        public bool CanShowAd()
+        private bool CanShow()
         {
-            var rewardedAd = _rewardedAds.LastOrDefault();
-            return CanShow(rewardedAd);
-        }
-
-        private bool CanShow(RewardedAd rewardedAd)
-        {
-            if (rewardedAd == null || !rewardedAd.CanShowAd()) return false;
+            if (_rewardedAd == null || !_rewardedAd.CanShowAd()) return false;
             return true;
         }
 
-        private void LoadNewAd()
+        private async Task LoadNewAd()
         {
-            var adRequest = new AdRequest();
-
-            RewardedAd.Load(_adUnitId, adRequest, (RewardedAd ad, LoadAdError error) =>
+            while (true)
             {
-                if (error != null)
+                if (_rewardedAd == null)
                 {
-                    return;
+                    var adRequest = new AdRequest();
+
+                    // Send the request to load the ad.
+                    RewardedAd.Load(_adUnitId, adRequest, (ad, error) =>
+                    {
+                        if (error != null)
+                        {
+                            Debug.LogWarning(error);
+                            return;
+                        }
+
+                        _rewardedAd = ad;
+                    });
                 }
 
-                _rewardedAds.Add(ad);
-                ListenToAdEvents(ad);
-            });
+                await Task.Delay(1000);
+            }
         }
 
-        public void ShowAd(Action<Reward> callback)
+        public void ShowAd(Action<Reward> succeed, Action failed)
         {
-            var rewardedAd = _rewardedAds.LastOrDefault();
+            if (!CanShow()) return;
 
-            if (!CanShow(rewardedAd)) return;
-
-            rewardedAd?.Show(reward =>
+            ListenToAdEvents(_rewardedAd, failed);
+            _rewardedAd?.Show(reward =>
             {
-                callback?.Invoke(reward);
-                DestroyAd(rewardedAd);
+                succeed?.Invoke(reward);
+                DestroyAd();
             });
         }
 
-        private void ListenToAdEvents(RewardedAd rewardedAd)
+        private void ListenToAdEvents(RewardedAd rewardedAd, Action failed)
         {
-            rewardedAd.OnAdPaid += (AdValue adValue) =>
+            rewardedAd.OnAdPaid += adValue =>
             {
                 // Raised when the ad is estimated to have earned money.
             };
@@ -79,25 +78,21 @@ namespace MidasTouch.AD.AdMob
             {
                 // Raised when the ad opened full screen content.
             };
-            rewardedAd.OnAdFullScreenContentClosed += () =>
-            {
-                LoadNewAd();
-                DestroyAd(rewardedAd);
-            };
-            rewardedAd.OnAdFullScreenContentFailed += (AdError error) =>
+            rewardedAd.OnAdFullScreenContentClosed += DestroyAd;
+            rewardedAd.OnAdFullScreenContentFailed += error =>
             {
                 Debug.LogWarning(error);
-                LoadNewAd();
-                DestroyAd(rewardedAd);
+                failed?.Invoke();
+                DestroyAd();
             };
         }
 
-        private void DestroyAd(RewardedAd rewardedAd)
+        private void DestroyAd()
         {
-            if (rewardedAd != null)
+            if (_rewardedAd != null)
             {
-                _rewardedAds.Remove(rewardedAd);
-                rewardedAd.Destroy();
+                _rewardedAd.Destroy();
+                _rewardedAd = null;
             }
         }
     }

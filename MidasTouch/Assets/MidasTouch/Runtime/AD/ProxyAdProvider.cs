@@ -25,9 +25,12 @@ namespace MidasTouch.AD
         public ProxyAdProvider()
         {
 #if USE_ADMOB
-            // _adProvider = new 
+            _adProvider = new AdMobProvider("ca-app-pub-3940256099942544/6300978111",
+                "ca-app-pub-3940256099942544/1033173712", "ca-app-pub-3940256099942544/5224354917");
 #elif USE_TAPSELL
-            _adProvider = new TapsellProvider("");
+            var testAppId = "alsoatsrtrotpqacegkehkaiieckldhrgsbspqtgqnbrrfccrtbdomgjtahflchkqtqosa";
+            _adProvider = new TapsellProvider(testAppId, "5cfaaa30e8d17f0001ffb294", "5cfaa942e8d17f0001ffb292",
+                "5cfaa802e8d17f0001ffb28e");
 #endif
         }
 

@@ -1,6 +1,7 @@
 ﻿#if USE_TAPSELL
 using System;
 using TapsellPlusSDK;
+using TapsellPlusSDK.models;
 using UnityEngine;
 
 namespace MidasTouch.AD.Tapsell
@@ -8,12 +9,24 @@ namespace MidasTouch.AD.Tapsell
     internal class TapsellProvider : IAdProvider
     {
         private readonly string _tapsellPlusKey;
-        public bool BannerSupported { get; }
+        private readonly string _bannerZoneId;
+        private readonly string _interstitialZoneId;
+        private readonly string _rewardedZoneId;
+        public bool BannerSupported => true;
+        
         private bool _initialized;
         
-        public TapsellProvider(string tapsellPlusKey)
+        
+        private BannerSnippets _bannerSnippets;
+        private InterstitialSnippets _interstitialSnippets;
+        private RewardedAdSnippets _rewardedAdSnippets;
+
+        public TapsellProvider(string tapsellPlusKey, string bannerZoneId, string interstitialZoneId, string rewardedZoneId)
         {
             _tapsellPlusKey = tapsellPlusKey;
+            _bannerZoneId = bannerZoneId;
+            _interstitialZoneId = interstitialZoneId;
+            _rewardedZoneId = rewardedZoneId;
         }
 
         public void Initialize(Action<bool> callback)
@@ -22,6 +35,9 @@ namespace MidasTouch.AD.Tapsell
                 adNetworkName =>
                 {
                     _initialized = true;
+                    _bannerSnippets = new BannerSnippets(_bannerZoneId, Gravity.Center, Gravity.Bottom);
+                    _interstitialSnippets = new InterstitialSnippets(_interstitialZoneId);
+                    _rewardedAdSnippets = new RewardedAdSnippets(_rewardedZoneId);
                     Debug.Log(adNetworkName + " Initialized Successfully.");
                     callback?.Invoke(true);
                 },
@@ -35,17 +51,30 @@ namespace MidasTouch.AD.Tapsell
 
         public void SetBannerActive(bool show)
         {
-            throw new NotImplementedException();
+            if (!BannerSupported) return;
+            if (!_initialized) return;
+
+            if (show)
+                _bannerSnippets.ShowBanner();
+            else
+                _bannerSnippets.HideBanner();
         }
 
         public void ShowInterstitial()
         {
-            // TapsellPlus.reward
+            if (!_initialized) return;
+            _interstitialSnippets.ShowAd();
         }
 
         public void ShowRewarded(Action<bool> success)
         {
-            throw new NotImplementedException();
+            if (!_initialized)
+            {
+                success?.Invoke(false);
+                return;
+            }
+
+            _rewardedAdSnippets.ShowAd(success);
         }
     }
 }

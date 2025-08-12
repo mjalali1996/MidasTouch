@@ -19,7 +19,6 @@ namespace Samples.Scripts
             _bannerButton.onClick.AddListener(OnBannerButtonClicked);
             _interstitialButton.onClick.AddListener(OnInterstitialButtonClicked);
             _rewardedAdButton.onClick.AddListener(OnRewardedAdButtonClicked);
-            // "ca-app-pub-3940256099942544/6300978111", "ca-app-pub-3940256099942544/1033173712", "ca-app-pub-3940256099942544/5224354917"
             _adProvider = new ProxyAdProvider();
 
             _adProvider.Initialize(b => { Debug.Log(b ? "Ad Provider Initialized" : "Ad Provider Not Initialized"); });
