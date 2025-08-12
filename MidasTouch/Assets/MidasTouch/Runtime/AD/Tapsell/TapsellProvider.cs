@@ -1,7 +1,8 @@
-﻿#if USE_TAPSELL
-using System;
+﻿using System;
+#if USE_TAPSELL
 using TapsellPlusSDK;
 using TapsellPlusSDK.models;
+#endif
 using UnityEngine;
 
 namespace MidasTouch.AD.Tapsell
@@ -13,24 +14,26 @@ namespace MidasTouch.AD.Tapsell
         private readonly string _interstitialZoneId;
         private readonly string _rewardedZoneId;
         public bool BannerSupported => true;
-        
+
         private bool _initialized;
-        
-        
+
+
+#if USE_TAPSELL
         private BannerSnippets _bannerSnippets;
         private InterstitialSnippets _interstitialSnippets;
         private RewardedAdSnippets _rewardedAdSnippets;
-
-        public TapsellProvider(string tapsellPlusKey, string bannerZoneId, string interstitialZoneId, string rewardedZoneId)
+#endif
+        public TapsellProvider(TapsellConfig config)
         {
-            _tapsellPlusKey = tapsellPlusKey;
-            _bannerZoneId = bannerZoneId;
-            _interstitialZoneId = interstitialZoneId;
-            _rewardedZoneId = rewardedZoneId;
+            _tapsellPlusKey = config.AppId;
+            _bannerZoneId = config.BannerZoneId;
+            _interstitialZoneId = config.InterstitialZoneId;
+            _rewardedZoneId = config.RewardedZoneId;
         }
 
         public void Initialize(Action<bool> callback)
         {
+#if USE_TAPSELL
             TapsellPlus.Initialize(_tapsellPlusKey,
                 adNetworkName =>
                 {
@@ -47,6 +50,7 @@ namespace MidasTouch.AD.Tapsell
                     Debug.Log(error.ToString());
                     callback?.Invoke(false);
                 });
+#endif
         }
 
         public void SetBannerActive(bool show)
@@ -54,16 +58,20 @@ namespace MidasTouch.AD.Tapsell
             if (!BannerSupported) return;
             if (!_initialized) return;
 
+#if USE_TAPSELL
             if (show)
                 _bannerSnippets.ShowBanner();
             else
                 _bannerSnippets.HideBanner();
+#endif
         }
 
         public void ShowInterstitial()
         {
             if (!_initialized) return;
+#if USE_TAPSELL
             _interstitialSnippets.ShowAd();
+#endif
         }
 
         public void ShowRewarded(Action<bool> success)
@@ -74,8 +82,9 @@ namespace MidasTouch.AD.Tapsell
                 return;
             }
 
+#if USE_TAPSELL
             _rewardedAdSnippets.ShowAd(success);
+#endif
         }
     }
 }
-#endif

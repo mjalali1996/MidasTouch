@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Data;
 
-#if USE_ADMOB
 using MidasTouch.AD.AdMob;
-#elif USE_TAPSELL
 using MidasTouch.AD.Tapsell;
-#endif
+using UnityEngine;
 
 namespace MidasTouch.AD
 {
@@ -25,12 +23,11 @@ namespace MidasTouch.AD
         public ProxyAdProvider()
         {
 #if USE_ADMOB
-            _adProvider = new AdMobProvider("ca-app-pub-3940256099942544/6300978111",
-                "ca-app-pub-3940256099942544/1033173712", "ca-app-pub-3940256099942544/5224354917");
+            var config = Resources.Load<AdMobConfig>(nameof(AdMobConfig));
+            _adProvider = new AdMobProvider(config);
 #elif USE_TAPSELL
-            var testAppId = "alsoatsrtrotpqacegkehkaiieckldhrgsbspqtgqnbrrfccrtbdomgjtahflchkqtqosa";
-            _adProvider = new TapsellProvider(testAppId, "5cfaaa30e8d17f0001ffb294", "5cfaa942e8d17f0001ffb292",
-                "5cfaa802e8d17f0001ffb28e");
+            var config = Resources.Load<TapsellConfig>(nameof(TapsellConfig));
+            _adProvider = new TapsellProvider(config);
 #endif
         }
 
@@ -44,21 +41,21 @@ namespace MidasTouch.AD
         public void SetBannerActive(bool show)
         {
             _ = CheckProvider(true);
- 
+
             _adProvider.SetBannerActive(show);
         }
 
         public void ShowInterstitial()
         {
             _ = CheckProvider(true);
- 
+
             _adProvider.ShowInterstitial();
         }
 
         public void ShowRewarded(Action<bool> success)
         {
             _ = CheckProvider(true);
- 
+
             _adProvider.ShowRewarded(success);
         }
 

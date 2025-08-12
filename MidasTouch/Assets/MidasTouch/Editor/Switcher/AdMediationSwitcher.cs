@@ -14,15 +14,16 @@ namespace MidasTouch.Editor.Switcher
     {
         private const string ADMOB_SYMBOL = "USE_ADMOB";
         private const string TAPSELL_SYMBOL = "USE_TAPSELL";
-        private const string BaseMediationPath = "Assets/MidasTouch/Editor/AdMediation";
-
-        public static readonly IReadOnlyDictionary<string, string> MediationPackageNames =
+        
+        private const string BaseMediationPackagePath = "Assets/MidasTouch/Editor/AdMediation";
+        
+        private static readonly IReadOnlyDictionary<string, string> MediationPackageNames =
             new Dictionary<string, string>()
             {
                 { ADMOB_SYMBOL, "Admob" },
                 { TAPSELL_SYMBOL, "Tapsell" }
             };
-        
+
         static AdMediationSwitcher()
         {
             AssetDatabase.importPackageCompleted += OnImportPackageCompleted;
@@ -31,8 +32,8 @@ namespace MidasTouch.Editor.Switcher
         private static void OnImportPackageCompleted(string packagename)
         {
             var contains = MediationPackageNames.Values.Contains(packagename);
-            if(!contains) return;
-            
+            if (!contains) return;
+
             GooglePlayServices.PlayServicesResolver.MenuForceResolve();
         }
 
@@ -41,9 +42,15 @@ namespace MidasTouch.Editor.Switcher
         {
             GetWindow<AdMediationSwitcher>("Ad Mediation Switcher");
         }
-
+        
         private void OnGUI()
         {
+            var currentMediationSymbol = GetCurrentMediationSymbol();
+            if (string.IsNullOrEmpty(currentMediationSymbol))
+                GUILayout.Label("No Mediation Set");
+            else
+                GUILayout.Label($"{MediationPackageNames[currentMediationSymbol]} Mediation is active");
+
             if (GUILayout.Button("Enable AdMob"))
             {
                 SwitchToMediation(ADMOB_SYMBOL);
@@ -63,7 +70,6 @@ namespace MidasTouch.Editor.Switcher
         private void SwitchToMediation(string symbol)
         {
             ClearAllMediation();
-
 
             var namedBuildTarget =
                 NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
@@ -101,6 +107,7 @@ namespace MidasTouch.Editor.Switcher
                 var packagePath = GetPackageFullPath(currentMediation);
                 DeleteAllMediationFile(packagePath);
             }
+            
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
 
             Debug.Log("All Ad Mediation plugins and symbols cleared.");
@@ -169,7 +176,24 @@ namespace MidasTouch.Editor.Switcher
 
         private static string GetPackageFullPath(string symbol)
         {
-            return $"{BaseMediationPath}/{MediationPackageNames[symbol]}.unitypackage";
+            return $"{BaseMediationPackagePath}/{MediationPackageNames[symbol]}.unitypackage";
+        }
+
+        private static string GetCurrentMediationSymbol()
+        {
+            var namedBuildTarget =
+                NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            var currentSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
+            foreach (var keyValuePair in MediationPackageNames)
+            {
+                var mediation = keyValuePair.Key;
+                if (currentSymbols.Contains(mediation))
+                {
+                    return mediation;
+                }
+            }
+
+            return string.Empty;
         }
     }
 }

@@ -1,7 +1,8 @@
-﻿#if USE_ADMOB
-using System;
+﻿using System;
 using UnityEngine;
+#if USE_ADMOB
 using GoogleMobileAds.Api;
+#endif
 
 namespace MidasTouch.AD.AdMob
 {
@@ -14,21 +15,23 @@ namespace MidasTouch.AD.AdMob
         private readonly string _rewardedAdId;
 
         private bool _initialized;
+#if USE_ADMOB
         private BannerSnippets _bannerSnippets;
         private InterstitialSnippets _interstitialSnippets;
         private RewardedAdSnippets _rewardedAdSnippets;
+#endif
 
-
-        internal AdMobProvider(string bannerAdId, string interstitialAdId, string rewardedAdId)
+        internal AdMobProvider(AdMobConfig config)
         {
-            _bannerAdId = bannerAdId;
-            _interstitialAdId = interstitialAdId;
-            _rewardedAdId = rewardedAdId;
+            _bannerAdId = config.BannerUnitId;
+            _interstitialAdId = config.InterstitialUnitId;
+            _rewardedAdId = config.RewardedAdUnitId;
         }
 
         public void Initialize(Action<bool> callback)
         {
             Debug.Log("Initializing AdMob Provider");
+#if USE_ADMOB
             MobileAds.Initialize(_ =>
             {
                 _initialized = true;
@@ -37,6 +40,7 @@ namespace MidasTouch.AD.AdMob
                 _rewardedAdSnippets = new RewardedAdSnippets(_rewardedAdId);
                 callback?.Invoke(true);
             });
+#endif
         }
 
         public void SetBannerActive(bool show)
@@ -44,16 +48,20 @@ namespace MidasTouch.AD.AdMob
             if (!BannerSupported) return;
             if (!_initialized) return;
 
+#if USE_ADMOB
             if (show)
                 _bannerSnippets.ShowBanner();
             else
                 _bannerSnippets.HideBanner();
+#endif
         }
 
         public void ShowInterstitial()
         {
             if (!_initialized) return;
+#if USE_ADMOB
             _interstitialSnippets.ShowAd();
+#endif
         }
 
         public void ShowRewarded(Action<bool> success)
@@ -64,8 +72,9 @@ namespace MidasTouch.AD.AdMob
                 return;
             }
 
+#if USE_ADMOB
             _rewardedAdSnippets.ShowAd(reward => success?.Invoke(true), () => success?.Invoke(false));
+#endif
         }
     }
 }
-#endif
