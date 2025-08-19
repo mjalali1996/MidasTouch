@@ -671,7 +671,7 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   scriptingDefineSymbols:
-    Android: 
+    Android: USE_TAPSELL
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
