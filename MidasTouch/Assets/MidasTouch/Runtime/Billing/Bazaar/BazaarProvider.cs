@@ -1,24 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Bazaar.Data;
 using Bazaar.Poolakey;
 using Bazaar.Poolakey.Data;
+using MidasTouch.Billing.Models;
 using UnityEngine;
 
 namespace MidasTouch.Billing.Bazaar
 {
-    internal class BazaarProvider : IBillingProvider, IDisposable
+    internal abstract class BazaarProvider : IBillingProvider, IDisposable
     {
-        private readonly IPurchaseTokenValidator _validator;
         private Payment _payment;
-        private bool _initialized;
+        protected Payment Payment => _payment;
 
-        internal BazaarProvider(string key, IPurchaseTokenValidator validator)
+        private bool _initialized;
+        public bool Initialized => _initialized;
+
+        protected readonly List<SKUDetails> BazaarSkuDetails = new();
+
+        internal BazaarProvider(string key)
         {
             var securityCheck = SecurityCheck.Enable(key);
             var paymentConfiguration = new PaymentConfiguration(securityCheck);
-            _validator = validator;
             _payment = new Payment(paymentConfiguration);
         }
 
@@ -45,33 +50,89 @@ namespace MidasTouch.Billing.Bazaar
             }
         }
 
+        public async void UpdateSkus(List<string> skus, Action<bool> callback)
+        {
+            if (!_initialized)
+            {
+                Debug.LogWarning("Bazaar is not initialized");
+                callback?.Invoke(false);
+                return;
+            }
+            
+            var result = await _payment.GetSkuDetails(skus);
+            if (result.status == Status.Success)
+            {
+                BazaarSkuDetails.Clear();
+                BazaarSkuDetails.AddRange(result.data);
+                callback?.Invoke(true);
+                return;
+            }
+
+            Debug.LogWarning(result.message);
+            callback?.Invoke(false);
+        }
+
         public async void GetPurchases(Action<List<PurchasedItem>> callback)
         {
-            var items = new List<PurchasedItem>();
             try
             {
                 if (!_initialized)
                 {
                     Debug.LogWarning("Bazaar is not initialized");
-                    callback?.Invoke(items);
+                    callback?.Invoke(new List<PurchasedItem>());
                     return;
                 }
-                var result = await _payment.GetPurchases();
 
-                foreach (var purchaseInfo in result.data)
+                var items = await GetPurchasesInfo();
+                var purchasedItems = items.Select(i => new PurchasedItem()
                 {
-                    items.Add(new PurchasedItem()
-                    {
-                        ItemId = purchaseInfo.productId,
-                        PurchaseToken = purchaseInfo.purchaseToken,
-                        State = GetPurchaseState(purchaseInfo),
-                    });
-                }
+                    ItemId = i.productId,
+                    PurchaseToken = i.purchaseToken,
+                    State = GetPurchaseState(i.purchaseState)
+                }).ToList();
+                
+                callback?.Invoke(purchasedItems);
             }
             catch (Exception e)
             {
                 Debug.LogError(e);
-                callback?.Invoke(items);
+                callback?.Invoke(new List<PurchasedItem>());
+            }
+        }
+
+        public async void TryConsumePreviousPurchases(Action<List<PurchasedItem>> consumedItemsCallback)
+        {
+            try
+            {
+                if (!_initialized)
+                {
+                    Debug.LogWarning("Bazaar is not initialized");
+                    consumedItemsCallback?.Invoke(new List<PurchasedItem>());
+                    return;
+                }
+
+                var items = await GetPurchasesInfo();
+                var consumedItems = new List<PurchasedItem>();
+
+                foreach (var purchasedItem in items)
+                {
+                    var res = await Consume(purchasedItem.productId, purchasedItem.purchaseToken,
+                        GetBazaarItemType(purchasedItem.productId));
+                    if (!res) continue;
+                    consumedItems.Add(new PurchasedItem()
+                    {
+                        ItemId = purchasedItem.productId,
+                        PurchaseToken = purchasedItem.purchaseToken,
+                        State = PurchaseState.Consumed
+                    });
+                }
+
+                consumedItemsCallback?.Invoke(consumedItems);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                consumedItemsCallback?.Invoke(new List<PurchasedItem>());
             }
         }
 
@@ -97,7 +158,7 @@ namespace MidasTouch.Billing.Bazaar
                     return;
                 }
 
-                var consumed = await Consume(result.data.purchaseToken, type);
+                var consumed = await Consume(itemId, result.data.purchaseToken, type);
                 success?.Invoke(consumed);
             }
             catch (Exception e)
@@ -107,37 +168,7 @@ namespace MidasTouch.Billing.Bazaar
             }
         }
 
-        private async Task<bool> Consume(string purchaseToken, SKUDetails.Type type)
-        {
-            if (!_initialized)
-            {
-                Debug.LogWarning("Bazaar is not initialized");
-                return false;
-            }
-
-            var state = await _validator.ValidateToken(purchaseToken);
-            if (state is IPurchaseTokenValidator.State.Invalid or IPurchaseTokenValidator.State.Consumed)
-            {
-                Debug.LogWarning("Purchase Token is invalid");
-                return false;
-            }
-
-            if (type == SKUDetails.Type.inApp)
-            {
-                var consumedResult = await _payment.Consume(purchaseToken);
-
-                if (consumedResult.status != Status.Success)
-                {
-                    Debug.LogWarning("Failed to consume Bazaar item");
-                    return false;
-                }
-            }
-
-            var consumed = await _validator.Consume(purchaseToken);
-            if (!consumed)
-                Debug.LogWarning("Failed to consume item by validator");
-            return consumed;
-        }
+        protected abstract Task<bool> Consume(string itemId, string purchaseToken, SKUDetails.Type type);
 
         public void Dispose()
         {
@@ -148,24 +179,46 @@ namespace MidasTouch.Billing.Bazaar
             }
         }
 
-        private static PurchaseState GetPurchaseState(PurchaseInfo purchaseInfo)
+        private async Task<List<PurchaseInfo>> GetPurchasesInfo()
         {
-            var state = purchaseInfo.purchaseState switch
+            var result = await _payment.GetPurchases();
+
+            return result.data.Where(p => p.purchaseState == PurchaseInfo.State.Purchased).ToList();
+        }
+
+        private SKUDetails.Type GetBazaarItemType(string productId)
+        {
+            return BazaarSkuDetails.First(s=>s.sku ==  productId).type;
+        }
+
+        public static PurchaseState GetPurchaseState(PurchaseInfo.State state)
+        {
+            return state switch
             {
                 PurchaseInfo.State.Purchased => PurchaseState.Purchased,
                 PurchaseInfo.State.Refunded => PurchaseState.Refunded,
                 PurchaseInfo.State.Consumed => PurchaseState.Consumed,
                 _ => throw new ArgumentOutOfRangeException()
             };
-            return state;
         }
 
-        private static SKUDetails.Type GetBazaarItemType(ItemType itemType)
+        public static SKUDetails.Type GetBazaarItemType(ItemType itemType)
         {
             var state = itemType switch
             {
                 ItemType.Consumable => SKUDetails.Type.inApp,
                 ItemType.Subscription => SKUDetails.Type.subscription,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            return state;
+        }
+
+        public static ItemType GetItemType(SKUDetails.Type type)
+        {
+            var state = type switch
+            {
+                SKUDetails.Type.inApp => ItemType.Consumable,
+                SKUDetails.Type.subscription => ItemType.Subscription,
                 _ => throw new ArgumentOutOfRangeException()
             };
             return state;
