@@ -9,6 +9,7 @@ namespace MidasTouch.Billing
     public class BillingProxy : IBillingProvider
     {
         private readonly IBillingProvider _billingProvider;
+        public IReadOnlyList<string> Products => _billingProvider.Products;
 
         public BillingProxy()
         {

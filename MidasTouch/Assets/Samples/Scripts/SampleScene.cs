@@ -1,5 +1,6 @@
 using MidasTouch.AD;
 using MidasTouch.Billing;
+using MidasTouch.Billing.Models;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,17 +8,16 @@ namespace Samples.Scripts
 {
     public class SampleScene : MonoBehaviour
     {
-        [Header("Ad")]
-        [SerializeField] private Button _bannerButton;
+        [Header("Ad")] [SerializeField] private Button _bannerButton;
         [SerializeField] private Button _interstitialButton;
         [SerializeField] private Button _rewardedAdButton;
 
-        [Header("Billing")]
-        [SerializeField] private Button _buyItem1Button;
+        [Header("Billing")] [SerializeField] private Button _buyItem1Button;
         [SerializeField] private Button _buyItem2Button;
         [SerializeField] private Button _buySubscriptionButton;
-        
+
         private IAdProvider _adProvider;
+        private BillingProxy _billingProvider;
 
         private bool _banner;
 
@@ -30,7 +30,15 @@ namespace Samples.Scripts
 
             _adProvider.Initialize(b => { Debug.Log(b ? "Ad Provider Initialized" : "Ad Provider Not Initialized"); });
 
-            var billingProvider = new BillingProxy();
+            _buyItem1Button.onClick.AddListener(OnBuyItem1Clicked);
+            _buyItem2Button.onClick.AddListener(OnBuyItem2Clicked);
+            _buySubscriptionButton.onClick.AddListener(OnBuySubscriptionClicked);
+
+            _billingProvider = new BillingProxy();
+            _billingProvider.Initialize(b =>
+            {
+                Debug.Log(b ? "Billing Provider initialized" : "Billing Provider Not Initialized");
+            });
         }
 
         private void OnBannerButtonClicked()
@@ -47,6 +55,25 @@ namespace Samples.Scripts
         private void OnRewardedAdButtonClicked()
         {
             _adProvider.ShowRewarded(b => { Debug.Log(b ? "Rewarded Ad Was Successful" : "Rewarded Ad Failed"); });
+        }
+
+
+        private void OnBuyItem1Clicked()
+        {
+            _billingProvider.Purchase(_billingProvider.Products[0], ItemType.Consumable,
+                b => { Debug.Log("Item 1 Purchased Successfully"); });
+        }
+
+        private void OnBuyItem2Clicked()
+        {
+            _billingProvider.Purchase(_billingProvider.Products[1], ItemType.Consumable,
+                b => { Debug.Log("Item 2 Purchased Successfully"); });
+        }
+
+        private void OnBuySubscriptionClicked()
+        {
+            _billingProvider.Purchase(_billingProvider.Products[2], ItemType.Subscription,
+                b => { Debug.Log("Subscription Applied Successfully"); });
         }
     }
 }

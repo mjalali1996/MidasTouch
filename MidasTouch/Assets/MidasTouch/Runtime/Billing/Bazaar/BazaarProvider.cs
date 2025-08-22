@@ -23,6 +23,7 @@ namespace MidasTouch.Billing.Bazaar
 
         protected readonly List<SKUDetails> BazaarSkuDetails = new();
         private readonly List<string> _skus;
+        public IReadOnlyList<string> Products => _skus;
 
         internal BazaarProvider(BazaarConfig config)
         {
@@ -46,6 +47,7 @@ namespace MidasTouch.Billing.Bazaar
 
                 if (!result.data)
                 {
+                    Debug.LogWarning(result.message);
                     callback?.Invoke(false);
                     return;
                 }
@@ -53,10 +55,12 @@ namespace MidasTouch.Billing.Bazaar
                 var success = await UpdateSkus(_skus);
                 if (!success)
                 {
+                    Debug.LogWarning("Failed to update products");
                     callback?.Invoke(false);
                     return;
                 }
 
+                _initialized = true;
                 callback(true);
             }
             catch (Exception e)

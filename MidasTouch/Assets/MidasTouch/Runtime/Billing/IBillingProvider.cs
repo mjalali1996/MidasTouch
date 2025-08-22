@@ -6,6 +6,7 @@ namespace MidasTouch.Billing
 {
     public interface IBillingProvider
     {
+        public IReadOnlyList<string> Products { get; }
         void Initialize(Action<bool> callback);
         void GetPurchases(Action<List<PurchasedItem>> callback);
         void TryConsumePreviousPurchases(Action<List<PurchasedItem>> consumedItemsCallback);
