@@ -11,7 +11,7 @@ namespace MidasTouch.Billing.Bazaar
         [SerializeField] private string _webhookAddress;
 
         public string RsaKey => _rsaKey;
-        public IReadOnlyList<string> SkUs => _skus;
+        public IReadOnlyList<string> SKUs => _skus;
         public string WebhookAddress => _webhookAddress;
     }
 }
