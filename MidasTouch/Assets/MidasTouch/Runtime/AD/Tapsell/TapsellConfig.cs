@@ -2,7 +2,7 @@
 
 namespace MidasTouch.AD.Tapsell
 {
-    [CreateAssetMenu(menuName = "MidasTouch/Configs/Ad" + nameof(TapsellConfig), fileName = nameof(TapsellConfig))]
+    [CreateAssetMenu(menuName = "MidasTouch/Configs/Ad/" + nameof(TapsellConfig), fileName = nameof(TapsellConfig))]
     public class TapsellConfig : ScriptableObject
     {
         private const string TestAppId = "alsoatsrtrotpqacegkehkaiieckldhrgsbspqtgqnbrrfccrtbdomgjtahflchkqtqosa";

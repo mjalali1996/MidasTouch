@@ -671,7 +671,7 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   scriptingDefineSymbols:
-    Android: USE_TAPSELL
+    Android: USE_;MIDASTOUCH_BAZAAR
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

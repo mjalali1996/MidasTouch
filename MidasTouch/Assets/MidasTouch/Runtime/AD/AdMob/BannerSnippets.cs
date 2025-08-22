@@ -1,4 +1,4 @@
-﻿#if USE_ADMOB
+﻿#if MIDASTOUCH_ADMOB
 using GoogleMobileAds.Api;
 
 namespace MidasTouch.AD.AdMob

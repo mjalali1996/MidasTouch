@@ -1,14 +1,18 @@
-﻿using System.Linq;
+﻿#if MIDASTOUCH_BAZAAR
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Bazaar.Data;
 using Bazaar.Poolakey.Data;
 using UnityEngine;
+#endif
 
 namespace MidasTouch.Billing.Bazaar
 {
     internal class ClientSideBazaar : BazaarProvider
     {
-        internal ClientSideBazaar(string key) : base(key)
+#if MIDASTOUCH_BAZAAR
+        internal ClientSideBazaar(BazaarConfig config) : base(config)
         {
         }
 
@@ -38,5 +42,6 @@ namespace MidasTouch.Billing.Bazaar
             Debug.LogWarning("Failed to consume Bazaar item");
             return false;
         }
+#endif
     }
 }

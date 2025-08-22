@@ -1,6 +1,6 @@
 ﻿using System;
 using UnityEngine;
-#if USE_ADMOB
+#if MIDASTOUCH_ADMOB
 using GoogleMobileAds.Api;
 #endif
 
@@ -15,7 +15,7 @@ namespace MidasTouch.AD.AdMob
         private readonly string _rewardedAdId;
 
         private bool _initialized;
-#if USE_ADMOB
+#if MIDASTOUCH_ADMOB
         private BannerSnippets _bannerSnippets;
         private InterstitialSnippets _interstitialSnippets;
         private RewardedAdSnippets _rewardedAdSnippets;
@@ -30,8 +30,8 @@ namespace MidasTouch.AD.AdMob
 
         public void Initialize(Action<bool> callback)
         {
+#if MIDASTOUCH_ADMOB
             Debug.Log("Initializing AdMob Provider");
-#if USE_ADMOB
             MobileAds.Initialize(_ =>
             {
                 _initialized = true;
@@ -48,7 +48,7 @@ namespace MidasTouch.AD.AdMob
             if (!BannerSupported) return;
             if (!_initialized) return;
 
-#if USE_ADMOB
+#if MIDASTOUCH_ADMOB
             if (show)
                 _bannerSnippets.ShowBanner();
             else
@@ -59,7 +59,7 @@ namespace MidasTouch.AD.AdMob
         public void ShowInterstitial()
         {
             if (!_initialized) return;
-#if USE_ADMOB
+#if MIDASTOUCH_ADMOB
             _interstitialSnippets.ShowAd();
 #endif
         }
@@ -72,7 +72,7 @@ namespace MidasTouch.AD.AdMob
                 return;
             }
 
-#if USE_ADMOB
+#if MIDASTOUCH_ADMOB
             _rewardedAdSnippets.ShowAd(reward => success?.Invoke(true), () => success?.Invoke(false));
 #endif
         }

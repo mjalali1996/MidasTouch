@@ -1,5 +1,5 @@
 ﻿using System;
-#if USE_TAPSELL
+#if MIDASTOUCH_TAPSELL
 using TapsellPlusSDK;
 using TapsellPlusSDK.models;
 #endif
@@ -18,7 +18,7 @@ namespace MidasTouch.AD.Tapsell
         private bool _initialized;
 
 
-#if USE_TAPSELL
+#if MIDASTOUCH_TAPSELL
         private BannerSnippets _bannerSnippets;
         private InterstitialSnippets _interstitialSnippets;
         private RewardedAdSnippets _rewardedAdSnippets;
@@ -33,7 +33,7 @@ namespace MidasTouch.AD.Tapsell
 
         public void Initialize(Action<bool> callback)
         {
-#if USE_TAPSELL
+#if MIDASTOUCH_TAPSELL
             TapsellPlus.Initialize(_tapsellPlusKey,
                 adNetworkName =>
                 {
@@ -58,7 +58,7 @@ namespace MidasTouch.AD.Tapsell
             if (!BannerSupported) return;
             if (!_initialized) return;
 
-#if USE_TAPSELL
+#if MIDASTOUCH_TAPSELL
             if (show)
                 _bannerSnippets.ShowBanner();
             else
@@ -69,7 +69,7 @@ namespace MidasTouch.AD.Tapsell
         public void ShowInterstitial()
         {
             if (!_initialized) return;
-#if USE_TAPSELL
+#if MIDASTOUCH_TAPSELL
             _interstitialSnippets.ShowAd();
 #endif
         }
@@ -82,7 +82,7 @@ namespace MidasTouch.AD.Tapsell
                 return;
             }
 
-#if USE_TAPSELL
+#if MIDASTOUCH_TAPSELL
             _rewardedAdSnippets.ShowAd(success);
 #endif
         }

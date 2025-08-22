@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+#if MIDASTOUCH_BAZAAR
 using Bazaar.Data;
 using Bazaar.Poolakey;
 using Bazaar.Poolakey.Data;
+#endif
 using MidasTouch.Billing.Models;
 using UnityEngine;
 
@@ -12,6 +14,7 @@ namespace MidasTouch.Billing.Bazaar
 {
     internal abstract class BazaarProvider : IBillingProvider, IDisposable
     {
+#if MIDASTOUCH_BAZAAR
         private Payment _payment;
         protected Payment Payment => _payment;
 
@@ -19,10 +22,12 @@ namespace MidasTouch.Billing.Bazaar
         public bool Initialized => _initialized;
 
         protected readonly List<SKUDetails> BazaarSkuDetails = new();
+        private readonly List<string> _skus;
 
-        internal BazaarProvider(string key)
+        internal BazaarProvider(BazaarConfig config)
         {
-            var securityCheck = SecurityCheck.Enable(key);
+            _skus = config.SkUs.ToList();
+            var securityCheck = SecurityCheck.Enable(config.RsaKey);
             var paymentConfiguration = new PaymentConfiguration(securityCheck);
             _payment = new Payment(paymentConfiguration);
         }
@@ -39,9 +44,20 @@ namespace MidasTouch.Billing.Bazaar
 
                 var result = await _payment.Connect();
 
-                if (result.data) _initialized = true;
+                if (!result.data)
+                {
+                    callback?.Invoke(false);
+                    return;
+                }
 
-                callback(result.data);
+                var success = await UpdateSkus(_skus);
+                if (!success)
+                {
+                    callback?.Invoke(false);
+                    return;
+                }
+
+                callback(true);
             }
             catch (Exception e)
             {
@@ -50,26 +66,18 @@ namespace MidasTouch.Billing.Bazaar
             }
         }
 
-        public async void UpdateSkus(List<string> skus, Action<bool> callback)
+        private async Task<bool> UpdateSkus(List<string> skus)
         {
-            if (!_initialized)
-            {
-                Debug.LogWarning("Bazaar is not initialized");
-                callback?.Invoke(false);
-                return;
-            }
-            
             var result = await _payment.GetSkuDetails(skus);
             if (result.status == Status.Success)
             {
                 BazaarSkuDetails.Clear();
                 BazaarSkuDetails.AddRange(result.data);
-                callback?.Invoke(true);
-                return;
+                return true;
             }
 
             Debug.LogWarning(result.message);
-            callback?.Invoke(false);
+            return false;
         }
 
         public async void GetPurchases(Action<List<PurchasedItem>> callback)
@@ -90,7 +98,7 @@ namespace MidasTouch.Billing.Bazaar
                     PurchaseToken = i.purchaseToken,
                     State = GetPurchaseState(i.purchaseState)
                 }).ToList();
-                
+
                 callback?.Invoke(purchasedItems);
             }
             catch (Exception e)
@@ -188,7 +196,7 @@ namespace MidasTouch.Billing.Bazaar
 
         private SKUDetails.Type GetBazaarItemType(string productId)
         {
-            return BazaarSkuDetails.First(s=>s.sku ==  productId).type;
+            return BazaarSkuDetails.First(s => s.sku == productId).type;
         }
 
         public static PurchaseState GetPurchaseState(PurchaseInfo.State state)
@@ -223,5 +231,31 @@ namespace MidasTouch.Billing.Bazaar
             };
             return state;
         }
+#else
+        public void Initialize(Action<bool> callback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void GetPurchases(Action<List<PurchasedItem>> callback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TryConsumePreviousPurchases(Action<List<PurchasedItem>> consumedItemsCallback)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Purchase(string itemId, ItemType itemType, Action<bool> success)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+#endif
     }
 }

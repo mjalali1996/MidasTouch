@@ -1,4 +1,4 @@
-﻿#if USE_TAPSELL
+﻿#if MIDASTOUCH_TAPSELL
 using System;
 using System.Threading.Tasks;
 using TapsellPlusSDK;

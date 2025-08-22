@@ -2,7 +2,7 @@
 
 namespace MidasTouch.AD.AdMob
 {
-    [CreateAssetMenu(menuName = "MidasTouch/Configs/Ad" + nameof(AdMobConfig), fileName = nameof(AdMobConfig))]
+    [CreateAssetMenu(menuName = "MidasTouch/Configs/Ad/" + nameof(AdMobConfig), fileName = nameof(AdMobConfig))]
     public class AdMobConfig : ScriptableObject
     {
         private const string TestBannerUnitId = "ca-app-pub-3940256099942544/6300978111";

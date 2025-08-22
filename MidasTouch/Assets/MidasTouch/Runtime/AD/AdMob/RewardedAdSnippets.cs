@@ -1,4 +1,4 @@
-﻿#if USE_ADMOB
+﻿#if MIDASTOUCH_ADMOB
 using System;
 using System.Threading.Tasks;
 using GoogleMobileAds.Api;
