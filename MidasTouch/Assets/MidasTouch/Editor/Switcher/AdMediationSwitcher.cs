@@ -22,6 +22,7 @@ namespace MidasTouch.Editor.Switcher
                 { ADMOB_SYMBOL, "Admob" },
                 { TAPSELL_SYMBOL, "Tapsell" }
             };
+
         protected override IReadOnlyDictionary<string, string> PackageNames => MediationPackageNames;
 
         static AdMediationSwitcher()
@@ -64,6 +65,7 @@ namespace MidasTouch.Editor.Switcher
             if (GUILayout.Button("Clear All Mediation"))
             {
                 ClearAll();
+                GooglePlayServices.PlayServicesResolver.MenuForceResolve();
             }
         }
     }

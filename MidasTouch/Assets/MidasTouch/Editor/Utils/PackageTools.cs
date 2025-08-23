@@ -66,7 +66,7 @@ namespace MidasTouch.Editor.Utils
                     parentDirectories.Add(parentDir);
                 }
 
-                if (File.Exists(fullPath) || Directory.Exists(fullPath))
+                if (File.Exists(fullPath))
                 {
                     // Use FileUtil.DeleteFileOrDirectory, which correctly handles assets
                     FileUtil.DeleteFileOrDirectory(path);

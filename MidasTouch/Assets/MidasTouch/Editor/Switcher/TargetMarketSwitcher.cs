@@ -66,6 +66,7 @@ namespace MidasTouch.Editor.Switcher
             if (GUILayout.Button("Clear All Markets"))
             {
                 ClearAll();
+                GooglePlayServices.PlayServicesResolver.MenuForceResolve();
             }
         }
 
