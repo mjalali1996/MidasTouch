@@ -35,16 +35,19 @@ namespace MidasTouch.Billing
 
         public void GetPurchases(Action<List<PurchasedItem>> callback)
         {
+            _ = CheckProvider(true);
             _billingProvider.GetPurchases(callback);
         }
 
         public void TryConsumePreviousPurchases(Action<List<PurchasedItem>> consumedItemsCallback)
         {
+            _ = CheckProvider(true);
             _billingProvider.TryConsumePreviousPurchases(consumedItemsCallback);
         }
 
         public void Purchase(string itemId, ItemType itemType, Action<bool> success)
         {
+            _ = CheckProvider(true);
             _billingProvider.Purchase(itemId, itemType, success);
         }
         
