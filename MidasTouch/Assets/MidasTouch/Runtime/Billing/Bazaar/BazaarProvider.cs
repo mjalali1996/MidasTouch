@@ -106,8 +106,10 @@ namespace MidasTouch.Billing.Bazaar
                 var items = await GetPurchasesInfo();
                 var consumedItems = new List<PurchasedItem>();
 
+                Debug.Log("Not consumed purchases:");
                 foreach (var purchasedItem in items)
                 {
+                    Debug.Log($"{purchasedItem}");
                     var res = await Consume(purchasedItem.productId, purchasedItem.purchaseToken,
                         GetBazaarItemType(purchasedItem.productId));
                     if (!res) continue;
@@ -118,6 +120,7 @@ namespace MidasTouch.Billing.Bazaar
                         State = PurchaseState.Consumed
                     });
                 }
+                Debug.Log("----------------------------------------------------------------------------");
 
                 consumedItemsCallback?.Invoke(consumedItems);
             }

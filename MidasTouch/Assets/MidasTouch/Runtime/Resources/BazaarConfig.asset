@@ -19,5 +19,5 @@ MonoBehaviour:
   - ProductId: test_2
     ItemType: 0
   - ProductId: test_3
-    ItemType: 1
+    ItemType: 0
   _webhookAddress: 

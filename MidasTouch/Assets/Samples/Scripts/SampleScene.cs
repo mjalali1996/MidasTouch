@@ -15,6 +15,7 @@ namespace Samples.Scripts
         [Header("Billing")] [SerializeField] private Button _buyItem1Button;
         [SerializeField] private Button _buyItem2Button;
         [SerializeField] private Button _buySubscriptionButton;
+        [SerializeField] private Button _consumePreviousPurchasesButton;
 
         private IAdProvider _adProvider;
         private BillingProxy _billingProvider;
@@ -33,6 +34,7 @@ namespace Samples.Scripts
             _buyItem1Button.onClick.AddListener(OnBuyItem1Clicked);
             _buyItem2Button.onClick.AddListener(OnBuyItem2Clicked);
             _buySubscriptionButton.onClick.AddListener(OnBuySubscriptionClicked);
+            _consumePreviousPurchasesButton.onClick.AddListener(OnConsumePreviousPurchasesClicked);
 
             _billingProvider = new BillingProxy();
             _billingProvider.Initialize(b =>
@@ -74,6 +76,17 @@ namespace Samples.Scripts
         {
             _billingProvider.Purchase(_billingProvider.Products[2].ProductId, ItemType.Subscription,
                 b => { Debug.Log($"Subscription {(b ? "Was" : "Was Not")} Successfully"); });
+        }
+
+        private void OnConsumePreviousPurchasesClicked()
+        {
+            _billingProvider.TryConsumePreviousPurchases(list =>
+            {
+                foreach (var purchasedItem in list)
+                {
+                    Debug.Log($"Consumed: {purchasedItem}");
+                }
+            });
         }
     }
 }
