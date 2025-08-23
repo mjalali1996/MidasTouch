@@ -21,13 +21,13 @@ namespace MidasTouch.Billing.Bazaar
         private bool _initialized;
         public bool Initialized => _initialized;
 
-        protected readonly List<SKUDetails> BazaarSkuDetails = new();
-        private readonly List<string> _skus;
-        public IReadOnlyList<string> Products => _skus;
+        // private readonly List<SKUDetails> BazaarSkuDetails = new();
+        private readonly Product[] _products;
+        public IReadOnlyList<Product> Products => _products;
 
         internal BazaarProvider(BazaarConfig config)
         {
-            _skus = config.SKUs.ToList();
+            _products = config.Products.ToArray();
             var securityCheck = SecurityCheck.Enable(config.RsaKey);
             var paymentConfiguration = new PaymentConfiguration(securityCheck);
             _payment = new Payment(paymentConfiguration);
@@ -52,13 +52,7 @@ namespace MidasTouch.Billing.Bazaar
                     return;
                 }
 
-                var success = await UpdateSkus(_skus);
-                if (!success)
-                {
-                    Debug.LogWarning("Failed to update products");
-                    callback?.Invoke(false);
-                    return;
-                }
+                // await UpdateSkus(_skus);
 
                 _initialized = true;
                 callback(true);
@@ -68,20 +62,6 @@ namespace MidasTouch.Billing.Bazaar
                 Debug.LogError(e);
                 callback?.Invoke(false);
             }
-        }
-
-        private async Task<bool> UpdateSkus(List<string> skus)
-        {
-            var result = await _payment.GetSkuDetails(skus);
-            if (result.status == Status.Success)
-            {
-                BazaarSkuDetails.Clear();
-                BazaarSkuDetails.AddRange(result.data);
-                return true;
-            }
-
-            Debug.LogWarning(result.message);
-            return false;
         }
 
         public async void GetPurchases(Action<List<PurchasedItem>> callback)
@@ -200,7 +180,8 @@ namespace MidasTouch.Billing.Bazaar
 
         private SKUDetails.Type GetBazaarItemType(string productId)
         {
-            return BazaarSkuDetails.First(s => s.sku == productId).type;
+            var product = _products.First(p=>p.ProductId == productId);
+            return GetBazaarItemType(product.ItemType);
         }
 
         public static PurchaseState GetPurchaseState(PurchaseInfo.State state)
@@ -236,6 +217,8 @@ namespace MidasTouch.Billing.Bazaar
             return state;
         }
 #else
+        public IReadOnlyList<Product> Products { get; }
+
         public void Initialize(Action<bool> callback)
         {
             throw new NotImplementedException();

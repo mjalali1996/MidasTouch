@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using MidasTouch.Billing.Bazaar;
 using MidasTouch.Billing.Models;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace MidasTouch.Billing
     public class BillingProxy : IBillingProvider
     {
         private readonly IBillingProvider _billingProvider;
-        public IReadOnlyList<string> Products => _billingProvider.Products;
+        public IReadOnlyList<Product> Products => _billingProvider.Products;
 
         public BillingProxy()
         {
@@ -23,6 +24,12 @@ namespace MidasTouch.Billing
 
         public void Initialize(Action<bool> callback)
         {
+            var valid = CheckProvider();
+            if (!valid)
+            {
+                callback?.Invoke(false);
+                return;
+            }
             _billingProvider.Initialize(callback);
         }
 
@@ -39,6 +46,15 @@ namespace MidasTouch.Billing
         public void Purchase(string itemId, ItemType itemType, Action<bool> success)
         {
             _billingProvider.Purchase(itemId, itemType, success);
+        }
+        
+        private bool CheckProvider(bool throwException = false)
+        {
+            if (_billingProvider != null) return true;
+
+            if (!throwException) return false;
+
+            throw new ConstraintException();
         }
     }
 }

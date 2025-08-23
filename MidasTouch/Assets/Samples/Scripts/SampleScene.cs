@@ -60,20 +60,20 @@ namespace Samples.Scripts
 
         private void OnBuyItem1Clicked()
         {
-            _billingProvider.Purchase(_billingProvider.Products[0], ItemType.Consumable,
-                b => { Debug.Log("Item 1 Purchased Successfully"); });
+            _billingProvider.Purchase(_billingProvider.Products[0].ProductId, ItemType.Consumable,
+                b => { Debug.Log($"Item 1 Purchase {(b ? "Was" : "Was Not")} Successfully"); });
         }
 
         private void OnBuyItem2Clicked()
         {
-            _billingProvider.Purchase(_billingProvider.Products[1], ItemType.Consumable,
-                b => { Debug.Log("Item 2 Purchased Successfully"); });
+            _billingProvider.Purchase(_billingProvider.Products[1].ProductId, ItemType.Consumable,
+                b => { Debug.Log($"Item 2 Purchase {(b ? "Was" : "Was Not")} Successfully"); });
         }
 
         private void OnBuySubscriptionClicked()
         {
-            _billingProvider.Purchase(_billingProvider.Products[2], ItemType.Subscription,
-                b => { Debug.Log("Subscription Applied Successfully"); });
+            _billingProvider.Purchase(_billingProvider.Products[2].ProductId, ItemType.Subscription,
+                b => { Debug.Log($"Subscription {(b ? "Was" : "Was Not")} Successfully"); });
         }
     }
 }

@@ -33,7 +33,12 @@ namespace MidasTouch.AD
 
         public void Initialize(Action<bool> callback)
         {
-            _ = CheckProvider(true);
+            var valid = CheckProvider();
+            if (!valid)
+            {
+                callback?.Invoke(false);
+                return;
+            }
 
             _adProvider.Initialize(callback);
         }

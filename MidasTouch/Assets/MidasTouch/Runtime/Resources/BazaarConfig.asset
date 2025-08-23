@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: BazaarConfig
   m_EditorClassIdentifier: 
   _rsaKey: MIHNMA0GCSqGSIb3DQEBAQUAA4G7ADCBtwKBrwDMZ6tKSfNGdTGVj3NPpvar2JQI85RnbXJqAE5mhN4zp0yoNJWNwyBJLnL0zCp8Df5TWiIMxbql3QtdMx6BnFQpXfvIkpF4YfQGUuWhh8lixI07eh9EgviDnpS7hBM5QIyFDJR+8tevKcjIL48Zjd3tbqEA+68KsoxV5JWKLQwqFDStjWDi2faA4+lKbeC2lTOWcugY4UQ0JZYxbkAj1svQeHVs5Ge4QSBYL8UphkECAwEAAQ==
-  _skus:
-  - test_1
-  - test_2
+  _products:
+  - ProductId: test_1
+    ItemType: 0
+  - ProductId: test_2
+    ItemType: 0
+  - ProductId: test_3
+    ItemType: 1
   _webhookAddress: 

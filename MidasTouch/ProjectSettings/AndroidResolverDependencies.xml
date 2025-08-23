@@ -1,11 +1,10 @@
 <dependencies>
   <packages>
     <package>com.github.cafebazaar.Poolakey:poolakey:2.0.0</package>
-    <package>org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10</package>
   </packages>
   <files />
   <settings>
-    <setting name="androidAbis" value="arm64-v8a" />
+    <setting name="androidAbis" value="arm64-v8a,armeabi-v7a" />
     <setting name="bundleId" value="com.rohan.ziregonbad" />
     <setting name="explodeAars" value="True" />
     <setting name="gradleBuildEnabled" value="True" />
