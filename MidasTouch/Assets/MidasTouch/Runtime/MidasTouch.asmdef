@@ -1,7 +1,10 @@
 {
     "name": "MidasTouch",
     "rootNamespace": "MidasTouch",
-    "references": [],
+    "references": [
+        "Unity.Purchasing",
+        "Unity.Purchasing.SecurityStub"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

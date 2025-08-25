@@ -12,7 +12,7 @@ namespace MidasTouch.Billing.Bazaar
     internal class ClientSideBazaar : BazaarProvider
     {
 #if MIDASTOUCH_BAZAAR
-        internal ClientSideBazaar(BazaarConfig config) : base(config)
+        internal ClientSideBazaar(BillingConfig config) : base(config)
         {
         }
 

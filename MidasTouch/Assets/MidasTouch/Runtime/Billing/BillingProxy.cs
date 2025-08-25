@@ -14,10 +14,11 @@ namespace MidasTouch.Billing
 
         public BillingProxy()
         {
+            var config = Resources.Load<BillingConfig>(nameof(BillingConfig));
 #if MIDASTOUCH_BAZAAR
-            var config = Resources.Load<BazaarConfig>(nameof(BazaarConfig));
             _billingProvider = new ClientSideBazaar(config);
 #elif MIDASTOUCH_GOOGLEPLAY
+            _billingProvider = new GOOGLEPLAY(config);
 #endif
         }
 

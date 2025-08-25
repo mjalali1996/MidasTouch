@@ -11,7 +11,7 @@ namespace MidasTouch.Billing.Bazaar
 #if MIDASTOUCH_BAZAAR
         private readonly string _webhookAddress;
 
-        public ServerSideBazaar(BazaarConfig config) : base(config)
+        public ServerSideBazaar(BillingConfig config) : base(config)
         {
             _webhookAddress = config.WebhookAddress;
         }

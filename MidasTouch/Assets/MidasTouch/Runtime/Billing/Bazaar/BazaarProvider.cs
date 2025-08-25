@@ -25,7 +25,7 @@ namespace MidasTouch.Billing.Bazaar
         private readonly Product[] _products;
         public IReadOnlyList<Product> Products => _products;
 
-        internal BazaarProvider(BazaarConfig config)
+        internal BazaarProvider(BillingConfig config)
         {
             _products = config.Products.ToArray();
             var securityCheck = SecurityCheck.Enable(config.RsaKey);
