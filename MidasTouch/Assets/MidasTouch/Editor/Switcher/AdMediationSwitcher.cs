@@ -15,15 +15,23 @@ namespace MidasTouch.Editor.Switcher
 
         private const string BaseMediationPackagePath = "Assets/MidasTouch/Editor/Packages/AdMediations";
         protected override string BasePackagePath => BaseMediationPackagePath;
+        
+        private static readonly List<string> AllSymbols = new()
+        {
+            ADMOB_SYMBOL,
+            TAPSELL_SYMBOL
+        };
 
-        private static readonly IReadOnlyDictionary<string, string> MediationPackageNames =
+        protected override IReadOnlyList<string> Symbols => AllSymbols;
+
+        private static readonly IReadOnlyDictionary<string, string> MediationSymbolToPackageNames =
             new Dictionary<string, string>()
             {
                 { ADMOB_SYMBOL, "Admob" },
                 { TAPSELL_SYMBOL, "Tapsell" }
             };
 
-        protected override IReadOnlyDictionary<string, string> PackageNames => MediationPackageNames;
+        protected override IReadOnlyDictionary<string, string> SymbolToPackageNames => MediationSymbolToPackageNames;
 
         static AdMediationSwitcher()
         {
@@ -32,7 +40,7 @@ namespace MidasTouch.Editor.Switcher
 
         private static void OnImportPackageCompleted(string packagename)
         {
-            var contains = MediationPackageNames.Values.Contains(packagename);
+            var contains = MediationSymbolToPackageNames.Values.Contains(packagename);
             if (!contains) return;
 
             GooglePlayServices.PlayServicesResolver.MenuForceResolve();
@@ -50,7 +58,10 @@ namespace MidasTouch.Editor.Switcher
             if (string.IsNullOrEmpty(currentMediationSymbol))
                 GUILayout.Label("No Mediation Set");
             else
-                GUILayout.Label($"{MediationPackageNames[currentMediationSymbol]} Mediation is active");
+            {
+                var symbolName = currentMediationSymbol.Replace("MIDASTOUCH_", "");
+                GUILayout.Label($"{symbolName} Mediation is active");
+            }
 
             if (GUILayout.Button("Enable AdMob"))
             {

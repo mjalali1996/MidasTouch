@@ -3,7 +3,8 @@
     "rootNamespace": "MidasTouch",
     "references": [
         "Unity.Purchasing",
-        "Unity.Purchasing.SecurityStub"
+        "Unity.Purchasing.SecurityStub",
+        "Unity.Purchasing.SecurityCore"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

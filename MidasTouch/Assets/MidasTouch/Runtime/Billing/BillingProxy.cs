@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using MidasTouch.Billing.Bazaar;
 using MidasTouch.Billing.Models;
+using MidasTouch.Billing.Unity;
 using UnityEngine;
 
 namespace MidasTouch.Billing
@@ -18,7 +19,9 @@ namespace MidasTouch.Billing
 #if MIDASTOUCH_BAZAAR
             _billingProvider = new ClientSideBazaar(config);
 #elif MIDASTOUCH_GOOGLEPLAY
-            _billingProvider = new GOOGLEPLAY(config);
+            _billingProvider = new UnityProvider(config);
+#elif MIDASTOUCH_APPLE
+            _billingProvider = new UnityProvider(config);
 #endif
         }
 
@@ -31,6 +34,7 @@ namespace MidasTouch.Billing
                 callback?.Invoke(false);
                 return;
             }
+
             _billingProvider.Initialize(callback);
         }
 
@@ -51,7 +55,7 @@ namespace MidasTouch.Billing
             _ = CheckProvider(true);
             _billingProvider.Purchase(itemId, itemType, success);
         }
-        
+
         private bool CheckProvider(bool throwException = false)
         {
             if (_billingProvider != null) return true;

@@ -28,7 +28,7 @@ namespace MidasTouch.Billing.Bazaar
         internal BazaarProvider(BillingConfig config)
         {
             _products = config.Products.ToArray();
-            var securityCheck = SecurityCheck.Enable(config.RsaKey);
+            var securityCheck = SecurityCheck.Enable(config.BazaarConfig.RsaKey);
             var paymentConfiguration = new PaymentConfiguration(securityCheck);
             _payment = new Payment(paymentConfiguration);
         }

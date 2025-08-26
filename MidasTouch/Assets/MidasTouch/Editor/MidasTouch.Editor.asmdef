@@ -1,7 +1,9 @@
 {
     "name": "MidasTouch.Editor",
     "rootNamespace": "MidasTouch.Editor",
-    "references": [],
+    "references": [
+        "GUID:e25a61468ff30f44fad56a6b40062363"
+    ],
     "includePlatforms": [
         "Editor"
     ],

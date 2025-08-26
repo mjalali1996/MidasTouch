@@ -10,7 +10,8 @@ namespace MidasTouch.Editor.Switcher
     {
         protected abstract string BasePackagePath { get; }
 
-        protected abstract IReadOnlyDictionary<string, string> PackageNames { get; }
+        protected abstract IReadOnlyList<string> Symbols { get; }
+        protected abstract IReadOnlyDictionary<string, string> SymbolToPackageNames { get; }
 
 
         protected void SwitchTo(string symbol)
@@ -24,44 +25,54 @@ namespace MidasTouch.Editor.Switcher
             var currentSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, currentSymbols + ";" + symbol);
 
-            var packagePath = GetPackageFullPath(symbol);
-            // Import the package
-            AssetDatabase.ImportPackage(packagePath, false);
+            TryImportPackage(symbol);
         }
 
         protected void ClearAll()
         {
-            // PlayServicesResolver.MenuDeleteResolvedLibraries();
+            var currentSymbol = GetCurrentSymbol();
+            if (!string.IsNullOrEmpty(currentSymbol)) 
+                TryDeletePackage(currentSymbol);
+
+            ClearSymbols();
+        }
+
+        private void ClearSymbols()
+        {
             var namedBuildTarget =
                 NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
 
             // Remove all custom symbols
             var currentSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
             var newSymbols = currentSymbols;
-            string currentSymbol = null;
-            foreach (var keyValuePair in PackageNames)
+            foreach (var symbol in Symbols)
             {
-                var mediation = keyValuePair.Key;
-                if (currentSymbols.Contains(mediation))
-                    currentSymbol = mediation;
-
-                newSymbols = newSymbols.Replace($";{mediation}", "").Replace(mediation, "");
-            }
-
-            if (currentSymbol != null)
-            {
-                var packagePath = GetPackageFullPath(currentSymbol);
-                PackageTools.DeleteAllPackageFile(packagePath);
+                newSymbols = newSymbols.Replace($";{symbol}", "").Replace(symbol, "");
             }
 
             PlayerSettings.SetScriptingDefineSymbols(namedBuildTarget, newSymbols);
 
-            Debug.Log("All Ad Mediation plugins and symbols cleared.");
+            Debug.Log("Symbols cleared.");
+        }
+
+        private void TryImportPackage(string symbol)
+        {
+            if (!SymbolToPackageNames.ContainsKey(symbol)) return;
+            var packagePath = GetPackageFullPath(symbol);
+            // Import the package
+            AssetDatabase.ImportPackage(packagePath, false);
+        }
+
+        private void TryDeletePackage(string symbol)
+        {
+            if (!SymbolToPackageNames.ContainsKey(symbol)) return;
+            var packagePath = GetPackageFullPath(symbol);
+            PackageTools.DeleteAllPackageFile(packagePath);
         }
 
         private string GetPackageFullPath(string symbol)
         {
-            return $"{BasePackagePath}/{PackageNames[symbol]}.unitypackage";
+            return $"{BasePackagePath}/{SymbolToPackageNames[symbol]}.unitypackage";
         }
 
         protected string GetCurrentSymbol()
@@ -69,12 +80,11 @@ namespace MidasTouch.Editor.Switcher
             var namedBuildTarget =
                 NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
             var currentSymbols = PlayerSettings.GetScriptingDefineSymbols(namedBuildTarget);
-            foreach (var keyValuePair in PackageNames)
+            foreach (var symbol in Symbols)
             {
-                var mediation = keyValuePair.Key;
-                if (currentSymbols.Contains(mediation))
+                if (currentSymbols.Contains(symbol))
                 {
-                    return mediation;
+                    return symbol;
                 }
             }
 

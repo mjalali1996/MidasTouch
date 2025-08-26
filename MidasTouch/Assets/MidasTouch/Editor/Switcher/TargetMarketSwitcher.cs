@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using MidasTouch.Editor.Utils;
+using System.Reflection;
 using UnityEditor;
-using UnityEditor.Build;
+using UnityEditor.Purchasing;
 using UnityEngine;
 
 namespace MidasTouch.Editor.Switcher
@@ -11,18 +12,29 @@ namespace MidasTouch.Editor.Switcher
     {
         private const string BAZAAR_SYMBOL = "MIDASTOUCH_BAZAAR";
         private const string GOOGLEPLAY_SYMBOL = "MIDASTOUCH_GOOGLEPLAY";
+        private const string APPLE_SYMBOL = "MIDASTOUCH_APPLE";
 
         private const string BaseMarketPackagePath = "Assets/MidasTouch/Editor/Packages/Markets";
+        
+        const string k_LegacyEnabledSettingName = "Purchasing";
         protected override string BasePackagePath => BaseMarketPackagePath;
 
-        private static readonly IReadOnlyDictionary<string, string> MarketPackageNames =
+        private static readonly List<string> AllSymbols = new()
+        {
+            BAZAAR_SYMBOL,
+            GOOGLEPLAY_SYMBOL,
+            APPLE_SYMBOL,
+        };
+
+        protected override IReadOnlyList<string> Symbols => AllSymbols;
+
+        private static readonly IReadOnlyDictionary<string, string> MarketSymbolToPackageNames =
             new Dictionary<string, string>()
             {
                 { BAZAAR_SYMBOL, "Bazaar" },
-                { GOOGLEPLAY_SYMBOL, "GooglePlay" }
             };
-        
-        protected override IReadOnlyDictionary<string, string> PackageNames => MarketPackageNames;
+
+        protected override IReadOnlyDictionary<string, string> SymbolToPackageNames => MarketSymbolToPackageNames;
 
         static TargetMarketSwitcher()
         {
@@ -31,7 +43,7 @@ namespace MidasTouch.Editor.Switcher
 
         private static void OnImportPackageCompleted(string packagename)
         {
-            var contains = MarketPackageNames.Values.Contains(packagename);
+            var contains = MarketSymbolToPackageNames.Values.Contains(packagename);
             if (!contains) return;
 
             GooglePlayServices.PlayServicesResolver.MenuForceResolve();
@@ -49,26 +61,54 @@ namespace MidasTouch.Editor.Switcher
             if (string.IsNullOrEmpty(currentMediationSymbol))
                 GUILayout.Label("No Market Set");
             else
-                GUILayout.Label($"{MarketPackageNames[currentMediationSymbol]} Market is active");
+            {
+                var symbolName = currentMediationSymbol.Replace("MIDASTOUCH_", "");
+                GUILayout.Label($"{symbolName} Market is active");
+            }
 
             if (GUILayout.Button("Enable Bazaar"))
             {
+                SetUnityIapPurchasingEnableSetting(false);
                 SwitchTo(BAZAAR_SYMBOL);
             }
 
-            GUI.enabled = false;
             if (GUILayout.Button("Enable GooglePlay"))
             {
+                SetUnityIapPurchasingEnableSetting(true);
                 SwitchTo(GOOGLEPLAY_SYMBOL);
             }
-            GUI.enabled = true;
+
+            if (GUILayout.Button("Enable Apple"))
+            {
+                SetUnityIapPurchasingEnableSetting(true);
+                SwitchTo(APPLE_SYMBOL);
+            }
 
             if (GUILayout.Button("Clear All Markets"))
             {
+                SetUnityIapPurchasingEnableSetting(false);
                 ClearAll();
                 GooglePlayServices.PlayServicesResolver.MenuForceResolve();
             }
         }
+        
+        static void SetUnityIapPurchasingEnableSetting(bool value)
+        {
+            PurchasingSettings.enabled = value;
+            SetLegacyEnabledSetting(value);
+        }
 
+        static void SetLegacyEnabledSetting(bool value)
+        {
+            var playerSettingsType = Type.GetType("UnityEditor.PlayerSettings,UnityEditor.dll");
+            if (playerSettingsType != null)
+            {
+                var setCloudServiceEnabledMethod = playerSettingsType.GetMethod("SetCloudServiceEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+                if (setCloudServiceEnabledMethod != null)
+                {
+                    setCloudServiceEnabledMethod.Invoke(null, new object[] { k_LegacyEnabledSettingName, value });
+                }
+            }
+        }
     }
 }
