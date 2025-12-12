@@ -11,17 +11,19 @@ namespace MidasTouch.Editor.Switcher
     public class TargetMarketSwitcher : BaseSwitcher
     {
         private const string BAZAAR_SYMBOL = "MIDASTOUCH_BAZAAR";
+        private const string MYKET_SYMBOL = "MIDASTOUCH_MYKET";
         private const string GOOGLEPLAY_SYMBOL = "MIDASTOUCH_GOOGLEPLAY";
         private const string APPLE_SYMBOL = "MIDASTOUCH_APPLE";
 
         private const string BaseMarketPackagePath = "Assets/MidasTouch/Editor/Packages/Markets";
-        
+
         const string k_LegacyEnabledSettingName = "Purchasing";
         protected override string BasePackagePath => BaseMarketPackagePath;
 
         private static readonly List<string> AllSymbols = new()
         {
             BAZAAR_SYMBOL,
+            MYKET_SYMBOL,
             GOOGLEPLAY_SYMBOL,
             APPLE_SYMBOL,
         };
@@ -32,6 +34,7 @@ namespace MidasTouch.Editor.Switcher
             new Dictionary<string, string>()
             {
                 { BAZAAR_SYMBOL, "Bazaar" },
+                { MYKET_SYMBOL, "Myket" },
             };
 
         protected override IReadOnlyDictionary<string, string> SymbolToPackageNames => MarketSymbolToPackageNames;
@@ -72,6 +75,12 @@ namespace MidasTouch.Editor.Switcher
                 SwitchTo(BAZAAR_SYMBOL);
             }
 
+            if (GUILayout.Button("Enable Myket"))
+            {
+                SetUnityIapPurchasingEnableSetting(false);
+                SwitchTo(MYKET_SYMBOL);
+            }
+
             if (GUILayout.Button("Enable GooglePlay"))
             {
                 SetUnityIapPurchasingEnableSetting(true);
@@ -91,7 +100,7 @@ namespace MidasTouch.Editor.Switcher
                 GooglePlayServices.PlayServicesResolver.MenuForceResolve();
             }
         }
-        
+
         static void SetUnityIapPurchasingEnableSetting(bool value)
         {
             PurchasingSettings.enabled = value;
@@ -103,7 +112,8 @@ namespace MidasTouch.Editor.Switcher
             var playerSettingsType = Type.GetType("UnityEditor.PlayerSettings,UnityEditor.dll");
             if (playerSettingsType != null)
             {
-                var setCloudServiceEnabledMethod = playerSettingsType.GetMethod("SetCloudServiceEnabled", BindingFlags.Static | BindingFlags.NonPublic);
+                var setCloudServiceEnabledMethod = playerSettingsType.GetMethod("SetCloudServiceEnabled",
+                    BindingFlags.Static | BindingFlags.NonPublic);
                 if (setCloudServiceEnabledMethod != null)
                 {
                     setCloudServiceEnabledMethod.Invoke(null, new object[] { k_LegacyEnabledSettingName, value });

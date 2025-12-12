@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using MidasTouch.Billing.Bazaar;
 using MidasTouch.Billing.Models;
+using MidasTouch.Billing.Myket;
 using MidasTouch.Billing.Unity;
 using UnityEngine;
 
@@ -16,8 +17,11 @@ namespace MidasTouch.Billing
         public BillingProxy()
         {
             var config = Resources.Load<BillingConfig>(nameof(BillingConfig));
+
 #if MIDASTOUCH_BAZAAR
             _billingProvider = new ClientSideBazaar(config);
+#elif MIDASTOUCH_MYKET
+            _billingProvider = new MyketProvider(config);
 #elif MIDASTOUCH_GOOGLEPLAY
             _billingProvider = new UnityProvider(config);
 #elif MIDASTOUCH_APPLE

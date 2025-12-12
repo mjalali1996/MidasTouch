@@ -2,10 +2,6 @@ apply plugin: 'com.android.library'
 apply from: '../shared/keepUnitySymbols.gradle'
 **APPLY_PLUGINS**
 
-configurations.all {
-    exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-}
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 **DEPS**}
