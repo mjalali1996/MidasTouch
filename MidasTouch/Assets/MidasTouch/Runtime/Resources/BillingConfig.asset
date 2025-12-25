@@ -13,11 +13,15 @@ MonoBehaviour:
   m_Name: BillingConfig
   m_EditorClassIdentifier: 
   _bazaarConfig:
-    _rsaKey: 
+    _rsaKey: MIHNMA0GCSqGSIb3DQEBAQUAA4G7ADCBtwKBrwDGNr/4PQ/SmgSKoNgtjUTuMvJqZNCVG7bOPeuN1pzGqyVotzZCrj/uoj0YpoWp6AR04jstUKvwWVJFNw4yHdf2wSpOgSXsd1VFmwLfPYJ8foeAAD7H9HgaDVUDUzVvQ1F8C1LABB6n4QBlHOgyuEMWur1iDhvrN7pFX8wr+ymtMmB5elLH1HcLrwp2QRKy6Ljf88bMT+BCNzqAVPh68pbETYBCv6JA8Cq/365dSHMCAwEAAQ==
+  _myketConfig:
+    _rsaKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCN2h6vxJsmG+QYhF2lUrOioXgKGOJR+7LwoNQjyHKbsaUhg2qvHHM9eJmJIsv6PWI02McuR5c9LTUaGKTS7/3qlWNfnegO5n2PEyHd/74BEqfj2Wt4NX/C2JhEEVWFEAtwXk+B7Z6EfH7oFdCTwrgGj7LKnypd7wYy2EVCuYF6HwIDAQAB
   _unityIAPConfig:
     _googlePublicKey: 
     _googleBundleId: 
     _rootCert: 
     _appleBundleId: 
-  _products: []
+  _products:
+  - ProductId: pack-1
+    ItemType: 0
   _webhookAddress: 

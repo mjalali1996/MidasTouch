@@ -1,9 +1,7 @@
 using MidasTouch.AD;
 using MidasTouch.Billing;
 using MidasTouch.Billing.Models;
-using UnityEditor.Purchasing;
 using UnityEngine;
-using UnityEngine.Purchasing;
 using UnityEngine.UI;
 
 namespace Samples.Scripts
